@@ -9,37 +9,42 @@ import time
 import sys
 
 # ==========================================================
-# URL Normalisierung (ROBUST)
+# KONFIGURATION
+# ==========================================================
+STARTER_URL = "https://megakino.live"
+WORKFLOW_URL = "https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml"
+
+# ==========================================================
+# URL Normalisierung
 # ==========================================================
 
 def normalize_domain(url):
     """
-    https://megakino1.to/favicon.ico?t=123
-    -> megakino1.to
+    Extrahiert die reine Domain aus einer URL.
+    Beispiel: https://megakino1.to/favicon.ico -> megakino1.to
     """
     if not url:
         return None
 
     try:
         parsed = urlparse(url)
-
-        # Falls Playwright eine URL ohne Schema liefert
-        if not parsed.netloc and parsed.path:
-            return parsed.path.split("/")[0]
-
-        return parsed.netloc
+        if parsed.netloc:
+            return parsed.netloc
+        # Fallback falls Schema fehlt
+        return parsed.path.split("/")[0]
     except Exception:
         return None
 
 
 # ==========================================================
-# MegaKino URL Finder
+# MegaKino Domain Finder
 # ==========================================================
 
 def get_megakino_domain():
     with sync_playwright() as p:
+        # Browser-Instanz starten
         browser = p.chromium.launch(
-            headless=False,
+            headless=True,  # Auf GitHub Actions muss dies True sein
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox"
@@ -57,37 +62,39 @@ def get_megakino_domain():
         page = context.new_page()
         found_url = None
 
-        # ------------------ Network Intercept ------------------
-
+        # Request-Interception um Redirects abzufangen
         def on_request(req):
             nonlocal found_url
             url = req.url
-
+            # Prüfen auf typische Streaming-TLDs, die nicht der Starter sind
             if (
                 not found_url
                 and "megakino.live" not in url
                 and any(tld in url for tld in [".to", ".sx", ".ws", ".cc", ".tv"])
             ):
                 found_url = url
-                print("🎯 RAW URL:", url)
+                print(f"🎯 RAW URL gefunden: {url}")
 
         page.on("request", on_request)
 
-        # ------------------ Navigation ------------------
+        print(f"🌐 Lade Starter-URL: {STARTER_URL}")
+        try:
+            page.goto(STARTER_URL, wait_until="networkidle", timeout=60000)
 
-        print("🌐 Lade megakino.live …")
-        page.goto("https://megakino.live", wait_until="networkidle")
+            # Warten auf den Button und klicken
+            page.wait_for_selector("#goBtn", timeout=30000)
+            time.sleep(2)
+            page.click("#goBtn", force=True)
 
-        page.wait_for_selector("#goBtn", timeout=30000)
-        time.sleep(2)
+            # Kurze Wartezeit für den Redirect-Request
+            for _ in range(40):
+                if found_url:
+                    break
+                time.sleep(0.5)
 
-        page.click("#goBtn", force=True)
-
-        # Warten auf Redirect
-        for _ in range(40):
-            if found_url:
-                break
-            time.sleep(0.5)
+        except Exception as e:
+            browser.close()
+            raise Exception(f"Fehler beim Seitenaufruf: {e}")
 
         browser.close()
 
@@ -95,11 +102,9 @@ def get_megakino_domain():
             raise Exception("Keine Redirect-URL gefunden")
 
         domain = normalize_domain(found_url)
-
         if not domain:
             raise Exception("URL konnte nicht normalisiert werden")
 
-        print("✅ DOMAIN:", domain)
         return domain
 
 
@@ -114,10 +119,10 @@ if __name__ == "__main__":
         print("=" * 60)
 
         domain = get_megakino_domain()
-
         timestamp = datetime.utcnow().isoformat() + "Z"
 
         data = {
+            "starter_url": STARTER_URL,
             "url": domain,
             "timestamp": timestamp,
             "success": True
@@ -125,29 +130,34 @@ if __name__ == "__main__":
 
         print("\n💾 Schreibe Dateien …")
 
-        # TXT
+        # 1. TXT Datei (reine Domain)
         with open("megakino-url.txt", "w", encoding="utf-8") as f:
             f.write(domain + "\n")
 
-        # JSON
+        # 2. JSON Datei (strukturierte Daten)
         with open("megakino-url.json", "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-        # README
+        # 3. README Datei (Dokumentation mit verstecktem Update-Link)
         with open("README.md", "w", encoding="utf-8") as f:
-            f.write(f"""# 🎬 MegaKino Domain
+            f.write(f"""# 🎬 MegaKino
 
-## ✅ Aktuelle Domain
+## ▶️ Starter-Link
+**{STARTER_URL}**
 
-**{domain}**
+## 🌐 Aktuelle Domain
+**[{domain}](https://{domain})**
 
-### Details
-- 🌐 Domain: `{domain}`
-- 🕐 Aktualisiert: `{timestamp}`
+### ℹ️ Details
+- Starter: `{STARTER_URL}`
+- Aktuelle Domain: `{domain}`
+- Aktualisiert: `{timestamp}`
+- [Jetzt aktualisieren]({WORKFLOW_URL})
 
 ---
 
-Automatisch ermittelt via GitHub Actions.
+🔁 Die Domain kann sich ändern.  
+👉 **Immer über den Starter-Link einsteigen.**
 """)
 
         print("✓ megakino-url.txt")
@@ -155,14 +165,16 @@ Automatisch ermittelt via GitHub Actions.
         print("✓ README.md")
 
         print("\n✅ SUCCESS")
-        print("🎯 Final Domain:", domain)
+        print(f"🎯 Starter: {STARTER_URL}")
+        print(f"🎯 Aktuelle Domain: {domain}")
 
         sys.exit(0)
 
     except Exception as e:
-        print("\n❌ FEHLER:", e)
+        print(f"\n❌ FEHLER: {e}")
 
         error_data = {
+            "starter_url": STARTER_URL,
             "url": None,
             "error": str(e),
             "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -173,6 +185,6 @@ Automatisch ermittelt via GitHub Actions.
             json.dump(error_data, f, indent=2)
 
         with open("megakino-url.txt", "w", encoding="utf-8") as f:
-            f.write("ERROR: " + str(e) + "\n")
+            f.write(f"ERROR: {e}\n")
 
         sys.exit(1)
