@@ -1,36 +1,14 @@
 # 🎬 MegaKino URL Finder
 
-## 📍 Aktuelle URL
+## ✅ Aktuelle URL
 
-### ✅ [https://megakino.live/](https://megakino.live/)
+**https://megakino1.to/favicon.ico?t=1767772798805**
 
-- **Status:** Aktive Domain gefunden
-- **Button:** View Full Site
-➜
-- **Aktualisiert:** 2026-01-07T07:11:00.129138Z
-
----
-
-## 🕐 Automatische Updates
-
-- ⏰ **12:00 UTC** (13:00/14:00 DE)
-- ⏰ **00:00 UTC** (01:00/02:00 DE)
-
-## 🚀 Manuell starten
-
-[**→ Workflow jetzt ausführen**](../../actions/workflows/get-megakino-url.yml)
-
-## 📊 Rohdaten
-
-- [megakino-url.txt](megakino-url.txt) - Nur URL
-- [megakino-url.json](megakino-url.json) - Vollständige Daten
-
-### API Zugriff
-
-```bash
-curl https://raw.githubusercontent.com/YOUR_USERNAME/megakino/main/megakino-url.txt
-```
+### Details
+- 🔗 URL: `https://megakino1.to/favicon.ico?t=1767772798805`
+- 📊 Status: `OK`
+- 🕐 Zeit: `2026-01-07T08:00:02.099479Z`
 
 ---
 
-*Automatisch aktualisiert durch GitHub Actions*
+Automatisch generiert.
