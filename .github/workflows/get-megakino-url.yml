@@ -2,35 +2,42 @@ name: Get MegaKino URL
 
 on:
   schedule:
-    - cron: '0 12,0 * * *'  # Um 12:00 und 00:00 UTC
-  workflow_dispatch:  # Manueller Start bleibt möglich
+    - cron: '0 12,0 * * *'
+  workflow_dispatch:
   push:
     branches: [ main ]
 
 jobs:
   get-url:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-    
+
+    - name: Install system deps
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+
     - name: Install Playwright
       run: |
         pip install playwright
         playwright install chromium
         playwright install-deps chromium
-    
-    - name: Get URL
-      run: python get_url.py
-    
+
+    - name: Get URL (with xvfb)
+      run: |
+        xvfb-run -a python get_url.py
+
     - name: Commit
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add -A
-        git diff --quiet && git diff --staged --quiet || git commit -m "✅ Update: $(date '+%Y-%m-%d %H:%M')"
+        git add megakino-url.txt megakino-url.json README.md
+        git diff --quiet && git diff --staged --quiet || \
+          git commit -m "✅ Update: $(date '+%Y-%m-%d %H:%M')"
         git push
