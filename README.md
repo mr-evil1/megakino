@@ -1,14 +1,18 @@
-# 🎬 MegaKino Domain
+# 🎬 MegaKino
 
-## ✅ Aktuelle Domain
+## ▶️ Starter-Link
+**https://megakino.live**
 
-**megakino1.to**
-WORKFLOW_URL = "https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml"
+## 🌐 Aktuelle Domain
+**[megakino1.to](https://megakino1.to)**
 
-### Details
-- 🌐 Domain: `megakino1.to`
-- 🕐 Aktualisiert: `2026-01-07T08:24:29.510630Z`
+### ℹ️ Details
+- Starter: `https://megakino.live`
+- Aktuelle Domain: `megakino1.to`
+- Aktualisiert: `2026-01-07T08:31:50.327056Z`
+- [Jetzt aktualisieren](https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
 
 ---
 
-Automatisch ermittelt via GitHub Actions.
+🔁 Die Domain kann sich ändern.  
+👉 **Immer über den Starter-Link einsteigen.**
