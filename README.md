@@ -1,14 +1,13 @@
-# 🎬 MegaKino URL Finder
+# 🎬 MegaKino Domain
 
-## ✅ Aktuelle URL
+## ✅ Aktuelle Domain
 
-**https://megakino1.to/favicon.ico?t=1767772798805**
+**megakino1.to**
 
 ### Details
-- 🔗 URL: `https://megakino1.to/favicon.ico?t=1767772798805`
-- 📊 Status: `OK`
-- 🕐 Zeit: `2026-01-07T08:00:02.099479Z`
+- 🌐 Domain: `megakino1.to`
+- 🕐 Aktualisiert: `2026-01-07T08:24:29.510630Z`
 
 ---
 
-Automatisch generiert.
+Automatisch ermittelt via GitHub Actions.
