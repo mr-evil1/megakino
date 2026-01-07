@@ -12,16 +12,16 @@ Automatisch aktualisierte URL von megakino.live
 ---
 
 ## 🚀 Jetzt aktualisieren
-##https://github.com/DEIN_USERNAME/DEIN_REPO/actions/workflows/get-megakino-url.yml
+##https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml
 ### Option 1: Über Actions Tab
 1. Gehe zu [Actions](../../actions)
 2. Wähle "Get MegaKino URL"
 3. Klicke "Run workflow"
 
 ### Option 2: Direktlink
-[![Run Workflow](https://img.shields.io/badge/Run-Workflow-blue?style=for-the-badge)](../../actions/workflows/get-megakino-url.yml)
+[![Run Workflow](https://img.shields.io/badge/Run-Workflow-blue?style=for-the-badge)](mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
 
-**[→ Workflow manuell starten](../../actions/workflows/get-megakino-url.yml)**
+**[→ Workflow manuell starten](mr-evil1/megakino/actions/workflows/get-megakino-url.yml)**
 
 ---
 
@@ -34,7 +34,7 @@ Automatisch aktualisierte URL von megakino.live
 
 ```bash
 # Nur URL
-curl https://raw.githubusercontent.com/DEIN_USERNAME/DEIN_REPO/main/megakino-url.txt
+curl https://raw.githubusercontent.com/mr-evil1/megakino/main/megakino-url.txt
 
 # JSON mit Details
-curl https://raw.githubusercontent.com/DEIN_USERNAME/DEIN_REPO/main/megakino-url.json
+curl https://raw.githubusercontent.com/mr-evil1/megakino/main/megakino-url.json
