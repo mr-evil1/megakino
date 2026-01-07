@@ -7,7 +7,7 @@
 - **Status:** Aktive Domain gefunden
 - **Button:** View Full Site
 ➜
-- **Aktualisiert:** 2026-01-07T07:10:02.880577Z
+- **Aktualisiert:** 2026-01-07T07:11:00.129138Z
 
 ---
 
