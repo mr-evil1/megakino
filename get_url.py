@@ -1,14 +1,45 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from playwright.sync_api import sync_playwright
-import json
 from datetime import datetime
+from urllib.parse import urlparse
+import json
 import time
 import sys
 
-def get_megakino_url():
+# ==========================================================
+# URL Normalisierung (ROBUST)
+# ==========================================================
+
+def normalize_domain(url):
+    """
+    https://megakino1.to/favicon.ico?t=123
+    -> megakino1.to
+    """
+    if not url:
+        return None
+
+    try:
+        parsed = urlparse(url)
+
+        # Falls Playwright eine URL ohne Schema liefert
+        if not parsed.netloc and parsed.path:
+            return parsed.path.split("/")[0]
+
+        return parsed.netloc
+    except Exception:
+        return None
+
+
+# ==========================================================
+# MegaKino URL Finder
+# ==========================================================
+
+def get_megakino_domain():
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,  # WICHTIG bei megakino
+            headless=False,
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox"
@@ -26,18 +57,23 @@ def get_megakino_url():
         page = context.new_page()
         found_url = None
 
+        # ------------------ Network Intercept ------------------
+
         def on_request(req):
             nonlocal found_url
             url = req.url
+
             if (
-                "megakino.live" not in url
-                and any(x in url for x in [".to", ".sx", ".ws", ".cc", ".tv"])
+                not found_url
+                and "megakino.live" not in url
+                and any(tld in url for tld in [".to", ".sx", ".ws", ".cc", ".tv"])
             ):
-                if not found_url:
-                    found_url = url
-                    print("🎯 FOUND:", url)
+                found_url = url
+                print("🎯 RAW URL:", url)
 
         page.on("request", on_request)
+
+        # ------------------ Navigation ------------------
 
         print("🌐 Lade megakino.live …")
         page.goto("https://megakino.live", wait_until="networkidle")
@@ -45,10 +81,9 @@ def get_megakino_url():
         page.wait_for_selector("#goBtn", timeout=30000)
         time.sleep(2)
 
-        # echter Klick
         page.click("#goBtn", force=True)
 
-        # warten auf Redirect-Request
+        # Warten auf Redirect
         for _ in range(40):
             if found_url:
                 break
@@ -59,27 +94,32 @@ def get_megakino_url():
         if not found_url:
             raise Exception("Keine Redirect-URL gefunden")
 
-        return {
-            "url": found_url,
-            "button_text": "goBtn",
-            "status": "OK"
-        }
+        domain = normalize_domain(found_url)
 
-# ===================== MAIN =====================
+        if not domain:
+            raise Exception("URL konnte nicht normalisiert werden")
+
+        print("✅ DOMAIN:", domain)
+        return domain
+
+
+# ==========================================================
+# MAIN
+# ==========================================================
 
 if __name__ == "__main__":
     try:
         print("=" * 60)
-        print("🎬 MegaKino URL Finder")
+        print("🎬 MegaKino Domain Finder")
         print("=" * 60)
 
-        result = get_megakino_url()
+        domain = get_megakino_domain()
+
+        timestamp = datetime.utcnow().isoformat() + "Z"
 
         data = {
-            "url": result["url"],
-            "button_text": result["button_text"],
-            "status": result["status"],
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "url": domain,
+            "timestamp": timestamp,
             "success": True
         }
 
@@ -87,7 +127,7 @@ if __name__ == "__main__":
 
         # TXT
         with open("megakino-url.txt", "w", encoding="utf-8") as f:
-            f.write(result["url"] + "\n")
+            f.write(domain + "\n")
 
         # JSON
         with open("megakino-url.json", "w", encoding="utf-8") as f:
@@ -95,20 +135,19 @@ if __name__ == "__main__":
 
         # README
         with open("README.md", "w", encoding="utf-8") as f:
-            f.write(f"""# 🎬 MegaKino URL Finder
+            f.write(f"""# 🎬 MegaKino Domain
 
-## ✅ Aktuelle URL
+## ✅ Aktuelle Domain
 
-**{result['url']}**
+**{domain}**
 
 ### Details
-- 🔗 URL: `{result['url']}`
-- 📊 Status: `{result['status']}`
-- 🕐 Zeit: `{data['timestamp']}`
+- 🌐 Domain: `{domain}`
+- 🕐 Aktualisiert: `{timestamp}`
 
 ---
 
-Automatisch generiert.
+Automatisch ermittelt via GitHub Actions.
 """)
 
         print("✓ megakino-url.txt")
@@ -116,7 +155,8 @@ Automatisch generiert.
         print("✓ README.md")
 
         print("\n✅ SUCCESS")
-        print("🎯 Final URL:", result["url"])
+        print("🎯 Final Domain:", domain)
+
         sys.exit(0)
 
     except Exception as e:
