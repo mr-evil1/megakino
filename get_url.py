@@ -3,11 +3,12 @@ from playwright.sync_api import sync_playwright
 import json
 from datetime import datetime
 import sys
+import time
 
 def get_megakino_url():
     """Ruft megakino.live auf und holt die dynamisch generierte URL"""
     
-    print("🔍 Opening megakino.live...")
+    print("🔍 Starting MegaKino URL Finder...")
     
     with sync_playwright() as p:
         browser = None
@@ -18,19 +19,19 @@ def get_megakino_url():
             )
             
             page = browser.new_page()
-            page.set_default_timeout(40000)
+            page.set_default_timeout(45000)
             
-            # Gehe zur Seite
-            print("🌐 Loading page...")
+            # Gehe zur Landing Page
+            print("\n🌐 Loading megakino.live...")
             response = page.goto('https://megakino.live', wait_until='networkidle')
             
             if not response or response.status != 200:
-                raise Exception(f"Page load failed: {response.status if response else 'No response'}")
+                raise Exception(f"Failed to load page: {response.status if response else 'No response'}")
             
-            print("✓ Page loaded")
-            print("⏳ Waiting for JavaScript to generate URL...")
+            print("✓ Page loaded successfully")
             
-            # Warte auf Button Aktivierung
+            # Warte auf Button-Aktivierung
+            print("\n⏳ Waiting for JavaScript to activate button...")
             page.wait_for_function('''
                 () => {
                     const btn = document.getElementById('goBtn');
@@ -38,71 +39,74 @@ def get_megakino_url():
                 }
             ''', timeout=35000)
             
-            print("✓ Button is active")
+            print("✓ Button is now active")
             
-            # Warte nochmal 3 Sekunden extra
-            import time
-            time.sleep(3)
+            # Extra Wartezeit
+            time.sleep(2)
             
-            # Hole Button-Daten
-            result = page.evaluate('''
+            # Hole aktuelle Button-Info
+            button_info = page.evaluate('''
                 () => {
                     const btn = document.getElementById('goBtn');
                     const status = document.getElementById('statusText');
-                    
                     return {
-                        href: btn ? btn.href : null,
                         text: btn ? btn.innerText : null,
                         status: status ? status.innerText : null,
-                        onclick: btn ? btn.getAttribute('onclick') : null
+                        href: btn ? btn.href : null
                     };
                 }
             ''')
             
-            print(f"📋 Button text: {result['text']}")
-            print(f"📋 Status: {result['status']}")
-            print(f"📋 Href: {result['href']}")
-            print(f"📋 Onclick: {result['onclick']}")
+            print(f"\n📋 Button Info:")
+            print(f"   Text: {button_info['text']}")
+            print(f"   Status: {button_info['status']}")
+            print(f"   Href: {button_info['href']}")
             
-            # Prüfe ob href vorhanden
-            if result['href'] and result['href'] != '' and result['href'] != 'https://megakino.live':
-                url = result['href']
-                print(f"✅ Found URL in href: {url}")
-            else:
-                # Versuche Button zu klicken und URL zu holen
-                print("🖱️ No href found, clicking button...")
+            # Klicke den Button
+            print("\n🖱️  Clicking button...")
+            
+            # Warte auf Navigation nach Button-Klick
+            with page.expect_navigation(timeout=10000):
                 page.click('#goBtn')
-                time.sleep(3)
-                
-                url = page.url
-                if url == 'https://megakino.live':
-                    raise Exception("Button click did not redirect to new URL")
-                
-                print(f"✅ Found URL after click: {url}")
+            
+            # Warte kurz für finale URL
+            time.sleep(2)
+            
+            final_url = page.url
+            
+            print(f"\n✅ Redirected to: {final_url}")
+            
+            # Validiere URL
+            if final_url == 'https://megakino.live' or final_url == 'https://megakino.live/':
+                raise Exception("Button did not redirect to a new URL")
             
             browser.close()
             
             return {
-                'url': url,
-                'text': result['text'],
-                'status': result['status']
+                'url': final_url,
+                'text': button_info['text'],
+                'status': button_info['status']
             }
             
         except Exception as e:
             if browser:
                 browser.close()
-            raise Exception(f"Failed to get URL: {e}")
+            raise Exception(f"Error: {e}")
 
-# Main
+# Main execution
 if __name__ == '__main__':
     try:
+        print("=" * 60)
+        print("🎬 MegaKino URL Finder")
+        print("=" * 60)
+        
         result = get_megakino_url()
         
-        # Validiere dass URL existiert
+        # Validierung
         if not result['url']:
-            raise Exception("No URL found in result")
+            raise Exception("No URL in result")
         
-        # Daten vorbereiten
+        # Daten
         data = {
             'url': result['url'],
             'button_text': result['text'] or 'N/A',
@@ -111,64 +115,98 @@ if __name__ == '__main__':
             'success': True
         }
         
-        print("\n💾 Saving files...")
+        print("\n" + "=" * 60)
+        print("💾 Saving files...")
+        print("=" * 60)
         
-        # JSON
+        # JSON speichern
         with open('megakino-url.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        print("✓ megakino-url.json")
         
-        # TXT
+        # TXT speichern
         with open('megakino-url.txt', 'w', encoding='utf-8') as f:
             f.write(result['url'] + '\n')
+        print("✓ megakino-url.txt")
         
-        # README
+        # README erstellen
         readme = f"""# 🎬 MegaKino URL Finder
 
 ## 📍 Aktuelle URL
 
-### ✅ [{result['url']}]({result['url']})
+### ✅ **[{result['url']}]({result['url']})**
 
-- **Status:** {result['status'] or 'N/A'}
-- **Button:** {result['text'] or 'N/A'}
-- **Aktualisiert:** {data['timestamp']}
+**Details:**
+- 🔗 URL: `{result['url']}`
+- 📊 Status: `{result['status'] or 'N/A'}`
+- 🔘 Button: `{result['text'] or 'N/A'}`
+- 🕐 Aktualisiert: `{data['timestamp']}`
 
 ---
 
 ## 🕐 Automatische Updates
 
+Dieses Repository wird automatisch aktualisiert:
 - ⏰ **12:00 UTC** (13:00/14:00 DE)
 - ⏰ **00:00 UTC** (01:00/02:00 DE)
 
-## 🚀 Manuell starten
+## 🚀 Manuell aktualisieren
 
-[**→ Workflow jetzt ausführen**](../../actions/workflows/get-megakino-url.yml)
+**[→ Workflow jetzt starten](../../actions/workflows/get-megakino-url.yml)**
+
+1. Klicke auf den Link
+2. Klicke "Run workflow" (grüner Button)
+3. Warte 1-2 Minuten
+4. Aktualisiere diese Seite
 
 ## 📊 Rohdaten
 
-- [megakino-url.txt](megakino-url.txt) - Nur URL
-- [megakino-url.json](megakino-url.json) - Vollständige Daten
+- **[megakino-url.txt](megakino-url.txt)** - Nur die URL
+- **[megakino-url.json](megakino-url.json)** - Vollständige Daten (JSON)
 
-### API Zugriff
+### 🔗 Raw URL (für Scripts)
 
 ```bash
+# Hole aktuelle URL
 curl https://raw.githubusercontent.com/YOUR_USERNAME/megakino/main/megakino-url.txt
+
+# JSON mit allen Details
+curl https://raw.githubusercontent.com/YOUR_USERNAME/megakino/main/megakino-url.json
 ```
 
 ---
 
-*Automatisch aktualisiert durch GitHub Actions*
+## 📝 Wie es funktioniert
+
+1. Script öffnet `megakino.live`
+2. Wartet bis JavaScript den Button aktiviert
+3. Klickt auf "View Full Site" Button
+4. Folgt der Weiterleitung zur echten MegaKino URL
+5. Speichert die finale URL
+
+---
+
+*Zuletzt erfolgreich aktualisiert: {data['timestamp']}*  
+*Automatisch durch GitHub Actions*
 """
         
         with open('README.md', 'w', encoding='utf-8') as f:
             f.write(readme)
+        print("✓ README.md")
         
-        print("✅ All files saved successfully!")
+        print("\n" + "=" * 60)
+        print("✅ SUCCESS!")
+        print("=" * 60)
+        print(f"\n🎯 Final URL: {result['url']}\n")
+        
         sys.exit(0)
         
     except Exception as e:
-        print(f"\n❌ ERROR: {e}")
+        print("\n" + "=" * 60)
+        print(f"❌ FAILED: {e}")
+        print("=" * 60)
         
-        # Erstelle Fehler-Dateien
+        # Error-Daten
         error_data = {
             'url': None,
             'error': str(e),
@@ -176,23 +214,38 @@ curl https://raw.githubusercontent.com/YOUR_USERNAME/megakino/main/megakino-url.
             'success': False
         }
         
-        with open('megakino-url.json', 'w', encoding='utf-8') as f:
-            json.dump(error_data, f, indent=2)
-        
-        with open('megakino-url.txt', 'w', encoding='utf-8') as f:
-            f.write(f"ERROR: {str(e)}\n")
-        
-        with open('README.md', 'w', encoding='utf-8') as f:
-            f.write(f"""# 🎬 MegaKino URL Finder
+        # Error-Dateien erstellen
+        try:
+            with open('megakino-url.json', 'w', encoding='utf-8') as f:
+                json.dump(error_data, f, indent=2)
+            
+            with open('megakino-url.txt', 'w', encoding='utf-8') as f:
+                f.write(f"ERROR: {str(e)}\n")
+                f.write(f"Time: {error_data['timestamp']}\n")
+            
+            with open('README.md', 'w', encoding='utf-8') as f:
+                f.write(f"""# 🎬 MegaKino URL Finder
 
 ## ⚠️ Letzter Lauf fehlgeschlagen
 
-**Fehler:** {str(e)}
+**Fehler:** `{str(e)}`
 
 **Zeitpunkt:** {error_data['timestamp']}
 
-[→ Erneut versuchen](../../actions/workflows/get-megakino-url.yml)
+---
+
+## 🔄 Erneut versuchen
+
+[**→ Workflow neu starten**](../../actions/workflows/get-megakino-url.yml)
+
+---
+
+*Weitere Details in den Actions Logs*
 """)
+            
+            print("\n💾 Error files created")
+            
+        except Exception as write_error:
+            print(f"\n⚠️  Could not write error files: {write_error}")
         
-        print("💾 Error files created")
         sys.exit(1)
