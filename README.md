@@ -1,40 +1,36 @@
-# 🎬 MegaKino URL
-
-Automatisch aktualisierte URL von megakino.live
+# 🎬 MegaKino URL Finder
 
 ## 📍 Aktuelle URL
 
-**[WIRD NACH ERSTEM LAUF ANGEZEIGT](#)**
+### ✅ [https://megakino.live/](https://megakino.live/)
 
-**Status:** Warte auf ersten Lauf...  
-**Letzte Aktualisierung:** -
-
----
-
-## 🚀 Jetzt aktualisieren
-##https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml
-### Option 1: Über Actions Tab
-1. Gehe zu [Actions](../../actions)
-2. Wähle "Get MegaKino URL"
-3. Klicke "Run workflow"
-
-### Option 2: Direktlink
-[![Run Workflow](https://img.shields.io/badge/Run-Workflow-blue?style=for-the-badge)](mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
-
-**[→ Workflow manuell starten](mr-evil1/megakino/actions/workflows/get-megakino-url.yml)**
+- **Status:** Aktive Domain gefunden
+- **Button:** View Full Site
+➜
+- **Aktualisiert:** 2026-01-07T07:10:02.880577Z
 
 ---
 
-## 📊 Zugriff auf Daten
+## 🕐 Automatische Updates
 
-- **Text-Datei:** [megakino-url.txt](megakino-url.txt)
-- **JSON-Datei:** [megakino-url.json](megakino-url.json)
+- ⏰ **12:00 UTC** (13:00/14:00 DE)
+- ⏰ **00:00 UTC** (01:00/02:00 DE)
 
-### API Zugriff (Raw)
+## 🚀 Manuell starten
+
+[**→ Workflow jetzt ausführen**](../../actions/workflows/get-megakino-url.yml)
+
+## 📊 Rohdaten
+
+- [megakino-url.txt](megakino-url.txt) - Nur URL
+- [megakino-url.json](megakino-url.json) - Vollständige Daten
+
+### API Zugriff
 
 ```bash
-# Nur URL
-curl https://raw.githubusercontent.com/mr-evil1/megakino/main/megakino-url.txt
+curl https://raw.githubusercontent.com/YOUR_USERNAME/megakino/main/megakino-url.txt
+```
 
-# JSON mit Details
-curl https://raw.githubusercontent.com/mr-evil1/megakino/main/megakino-url.json
+---
+
+*Automatisch aktualisiert durch GitHub Actions*
