@@ -3,6 +3,7 @@
 ## ✅ Aktuelle Domain
 
 **megakino1.to**
+WORKFLOW_URL = "https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml"
 
 ### Details
 - 🌐 Domain: `megakino1.to`
