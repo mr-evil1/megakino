@@ -9,7 +9,7 @@
 ### ℹ️ Details
 - Starter: `https://megakino.live`
 - Aktuelle Domain: `megakino1.to`
-- Aktualisiert: `2026-01-07T13:02:15.652201Z`
+- Aktualisiert: `2026-01-08T02:21:14.526323Z`
 - [Jetzt aktualisieren](https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
 
 ---
