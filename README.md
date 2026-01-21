@@ -7,5 +7,5 @@
 **[megakino1.fit](https://megakino1.fit)**
 
 ### ℹ️ Details
-- Aktualisiert: `2026-01-21T12:47:24.914301Z`
+- Aktualisiert: `2026-01-21T12:49:13.002725Z`
 - [Workflow](https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
