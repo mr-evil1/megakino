@@ -23,15 +23,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y xvfb
 
-    - name: Install Playwright
+    - name: Install Playwright & Stealth
       run: |
-        pip install playwright
+        pip install playwright playwright-stealth
         playwright install chromium
         playwright install-deps chromium
 
     - name: Get URL (with xvfb)
       run: |
-        xvfb-run -a python get_url.py
+        xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" python get_url.py
 
     - name: Commit
       run: |
