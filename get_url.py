@@ -19,7 +19,6 @@ WORKFLOW_URL = "https://github.com/mr-evil1/megakino/actions/workflows/get-megak
 IGNORED_HOSTS = {
     "megakino.live",
     "www.megakino.live",
-    # CDN / Tracking / Cloudflare etc. können hier ergänzt werden
     "challenges.cloudflare.com",
 }
 
@@ -32,18 +31,21 @@ def normalize_domain(url: str) -> str | None:
         return None
     try:
         parsed = urlparse(url if "://" in url else "https://" + url)
-        return parsed.netloc.lower().lstrip("www.")
+        host = parsed.netloc.lower()
+        if host.startswith("www."):
+            host = host[4:]
+        return host
     except Exception:
         return None
 
 def is_valid_target(url: str) -> bool:
-    """Gibt True zurück, wenn die URL ein echter Redirect-Zielhost ist."""
     host = normalize_domain(url)
     if not host:
         return False
     if host in IGNORED_HOSTS:
         return False
-    # Muss mindestens einen Punkt enthalten (echte Domain)
+    if STARTER_HOST in host:
+        return False
     if "." not in host:
         return False
     return True
@@ -72,90 +74,90 @@ def get_megakino_domain() -> str:
         )
 
         page = context.new_page()
-        found_url: str | None = None
 
-        # ── Request-Interceptor ──────────────────────────────────────
+        # Alle Kandidaten sammeln – finale page.url entscheidet später
+        candidate_urls: list[str] = []
+
         def on_request(req):
-            nonlocal found_url
-            if found_url:
-                return
             url = req.url
-            if is_valid_target(url) and STARTER_HOST not in url:
-                found_url = url
-                print(f"🎯 Redirect-Request erkannt: {url}")
+            # Nur Haupt-Navigationsrequests (document), keine Assets
+            if req.resource_type == "document" and is_valid_target(url):
+                candidate_urls.append(url)
+                print(f"📥 Navigation-Request: {url}")
 
-        # ── Response-Interceptor (Location-Header) ───────────────────
         def on_response(resp):
-            nonlocal found_url
-            if found_url:
-                return
             location = resp.headers.get("location", "")
-            if location and is_valid_target(location) and STARTER_HOST not in location:
-                found_url = location
-                print(f"🎯 Location-Header erkannt: {location}")
+            if location and is_valid_target(location):
+                candidate_urls.append(location)
+                print(f"📥 Location-Header: {location}")
 
         page.on("request", on_request)
         page.on("response", on_response)
 
         print(f"🌐 Lade Starter-URL: {STARTER_URL}")
         try:
-            page.goto(STARTER_URL, wait_until="commit", timeout=30000)
+            page.goto(STARTER_URL, wait_until="networkidle", timeout=30000)
         except Exception as e:
             print(f"⚠️ Warnung beim Laden: {e}")
 
-        # Kurz warten – automatische Weiterleitungen brauchen manchmal etwas
-        time.sleep(6)
+        time.sleep(3)
 
-        # ── Check 1: Finale Browser-URL ──────────────────────────────
-        current_url = page.url
-        print(f"📍 Aktuelle Browser-URL: {current_url}")
-        if not found_url and is_valid_target(current_url) and STARTER_HOST not in current_url:
-            found_url = current_url
-            print(f"🎯 Weiterleitung über Browser-URL erkannt: {current_url}")
+        # ── Priorität 1: Finale Browser-URL ─────────────────────────
+        final_url = page.url
+        print(f"📍 Finale Browser-URL: {final_url}")
 
-        # ── Check 2: Button-Fallback ─────────────────────────────────
-        if not found_url:
-            try:
-                print("⏳ Suche nach Button #goBtn ...")
-                btn = page.wait_for_selector("#goBtn", timeout=5000)
-                if btn:
-                    btn.click(force=True)
-                    print("🖱️ Button geklickt.")
-                    time.sleep(6)
-                    after_click_url = page.url
-                    if is_valid_target(after_click_url) and STARTER_HOST not in after_click_url:
-                        found_url = after_click_url
-                        print(f"🎯 Nach Button-Klick: {after_click_url}")
-            except Exception:
-                print("ℹ️ Kein Button gefunden.")
+        if is_valid_target(final_url):
+            domain = normalize_domain(final_url)
+            print(f"✅ Finale URL verwendet: {final_url}")
+            browser.close()
+            return domain
 
-        # ── Check 3: Meta-Refresh / JS redirect im DOM ───────────────
-        if not found_url:
-            try:
-                meta_url = page.evaluate("""() => {
-                    const meta = document.querySelector('meta[http-equiv="refresh"]');
-                    if (meta) {
-                        const m = meta.content.match(/url=([^;]+)/i);
-                        return m ? m[1].trim() : null;
-                    }
-                    return null;
-                }""")
-                if meta_url and is_valid_target(meta_url):
-                    found_url = meta_url
-                    print(f"🎯 Meta-Refresh-URL erkannt: {meta_url}")
-            except Exception:
-                pass
+        # ── Priorität 2: Button-Klick Fallback ──────────────────────
+        try:
+            print("⏳ Suche nach Button #goBtn ...")
+            btn = page.wait_for_selector("#goBtn", timeout=5000)
+            if btn:
+                btn.click(force=True)
+                print("🖱️ Button geklickt.")
+                time.sleep(6)
+                after_url = page.url
+                print(f"📍 URL nach Klick: {after_url}")
+                if is_valid_target(after_url):
+                    domain = normalize_domain(after_url)
+                    browser.close()
+                    return domain
+        except Exception:
+            print("ℹ️ Kein Button gefunden.")
+
+        # ── Priorität 3: Meta-Refresh im DOM ────────────────────────
+        try:
+            meta_url = page.evaluate("""() => {
+                const meta = document.querySelector('meta[http-equiv="refresh"]');
+                if (meta) {
+                    const m = meta.content.match(/url=([^;]+)/i);
+                    return m ? m[1].trim() : null;
+                }
+                return null;
+            }""")
+            if meta_url and is_valid_target(meta_url):
+                print(f"📥 Meta-Refresh: {meta_url}")
+                domain = normalize_domain(meta_url)
+                browser.close()
+                return domain
+        except Exception:
+            pass
+
+        # ── Priorität 4: Letzter gesammelter Kandidat ───────────────
+        if candidate_urls:
+            # Den LETZTEN nehmen – der ist am nächsten an der finalen Zielseite
+            last = candidate_urls[-1]
+            print(f"📥 Letzter Kandidat aus Interceptor: {last}")
+            domain = normalize_domain(last)
+            browser.close()
+            return domain
 
         browser.close()
-
-        if not found_url:
-            raise Exception("Keine Ziel-Domain gefunden – Redirect blieb aus.")
-
-        domain = normalize_domain(found_url)
-        if not domain:
-            raise Exception(f"Domain konnte nicht aus URL extrahiert werden: {found_url}")
-
-        return domain
+        raise Exception("Keine Ziel-Domain gefunden – Redirect blieb aus.")
 
 
 # ==========================================================
