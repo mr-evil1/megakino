@@ -7,5 +7,5 @@
 **[megakino1.cx](https://megakino1.cx)**
 
 ### ℹ️ Details
-- Aktualisiert: `2026-02-28T13:01:42.292420Z`
+- Aktualisiert: `2026-03-01T03:16:14.678618Z`
 - [Workflow](https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
