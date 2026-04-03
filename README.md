@@ -4,8 +4,8 @@
 **https://megakino.live**
 
 ## 🌐 Aktuelle Domain
-**[megakino2.to](https://megakino2.to)**
+**[megakino2.org](https://megakino2.org)**
 
 ### ℹ️ Details
-- Aktualisiert: `2026-04-03T03:17:42.884705Z`
+- Aktualisiert: `2026-04-03T13:21:29.102104Z`
 - [Workflow](https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
