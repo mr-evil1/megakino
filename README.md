@@ -7,5 +7,5 @@
 **[megakino3.com](https://megakino3.com)**
 
 ### ℹ️ Details
-- Aktualisiert: `2026-04-15T13:56:57.284493Z`
+- Aktualisiert: `2026-04-16T03:36:31.896291Z`
 - [Workflow](https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml)
