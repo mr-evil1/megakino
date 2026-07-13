@@ -11,8 +11,8 @@ import sys
 # ==========================================================
 # KONFIGURATION
 # ==========================================================
-STARTER_URL = "https://megakino10.com"
-STARTER_HOST = "megakino10.com"
+STARTER_URL = "https://megakino.live"
+STARTER_HOST = "megakino.live"
 WORKFLOW_URL = "https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml"
 
 # Blacklist: Diese Hosts gelten NICHT als Ziel
