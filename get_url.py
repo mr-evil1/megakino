@@ -11,7 +11,7 @@ import sys
 # ==========================================================
 # KONFIGURATION
 # ==========================================================
-STARTER_URL = "https://megakino.live"
+STARTER_URL = "https://megakino10.com"
 STARTER_HOST = "megakino10.com"
 WORKFLOW_URL = "https://github.com/mr-evil1/megakino/actions/workflows/get-megakino-url.yml"
 
