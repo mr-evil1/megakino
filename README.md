@@ -4,7 +4,7 @@
 **https://megakino.live**
 
 ## 🌐 Aktuelle Domain
-**[megakino25.com](https://megakino25.com)**
+**[megakino27.com](https://megakino27.com)**
 
 ### ℹ️ Details
 - Aktualisiert: `2026-11-12T19:47:46.391497Z`
